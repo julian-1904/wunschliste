@@ -58,7 +58,7 @@
       padding:35px;
       border-radius:14px;
       box-shadow:0 6px 18px rgba(0,0,0,0.15);
-      max-width:900px;
+      max-width:950px;
     }
 
     .list-title{
@@ -292,6 +292,12 @@
       margin-top:25px;
     }
 
+    .sum-row{
+      margin-top:12px;
+      font-weight:bold;
+      color:#333;
+    }
+
     form{
       margin:0;
     }
@@ -370,22 +376,27 @@
     </form>
   </div>
 
+  <div th:if="${!istBesitzer}" class="owner-actions">
+    <a href="#meine-reservierungen" class="button">
+      Meine Reservierungen
+    </a>
+  </div>
+
   <div class="sort-hint">
-    Sortierung: zuerst hohe Priorität, dann mittlere, dann niedrige – innerhalb derselben Priorität alphabetisch.
+    Sortierung: zuerst hohe Priorität, dann mittlere, dann niedrige, innerhalb derselben Priorität alphabetisch.
   </div>
 
   <div th:each="wunsch : ${wuensche}" class="wunsch-card">
 
     <div class="wunsch-header">
 
-      <div class="wunsch-title"
-           th:text="${wunsch.titel}">
+      <div class="wunsch-title" th:text="${wunsch.titel}">
         Titel
       </div>
 
       <div class="wunsch-price"
            th:if="${wunsch.preis != null}"
-           th:text="${wunsch.preis + ' €'}">
+           th:text="${#numbers.formatDecimal(wunsch.preis, 1, 2) + ' €'}">
         Preis
       </div>
 
@@ -407,14 +418,13 @@
 
       <span th:if="${wunsch.prioritaet.name() == 'NIEDRIG'}"
             class="priority priority-low">! niedrig</span>
-
     </div>
 
     <a th:if="${wunsch.url != null and !#strings.isEmpty(wunsch.url)}"
        th:href="${wunsch.url}"
        target="_blank"
        class="link-button">
-      🔗 Produkt ansehen
+      Produkt ansehen
     </a>
 
     <div class="meta"
@@ -430,12 +440,12 @@
 
     <div class="status status-own"
          th:if="${!istBesitzer and reservierungen != null and reservierungen[wunsch.id] != null and reservierungen[wunsch.id].reservierer.email == aktuelleEmail}">
-      🎁 Von dir reserviert
+      Von dir reserviert
     </div>
 
     <div class="status status-taken"
          th:if="${!istBesitzer and reservierungen != null and reservierungen[wunsch.id] != null and reservierungen[wunsch.id].reservierer.email != aktuelleEmail}">
-      🎁 Bereits reserviert
+      Bereits reserviert
     </div>
 
     <div class="actions">
@@ -466,6 +476,28 @@
 
     </div>
 
+  </div>
+
+  <div th:if="${!istBesitzer}" id="meine-reservierungen" class="members-box">
+    <div class="members-title">Meine Reservierungen in dieser Liste</div>
+
+    <ul class="members-list"
+        th:if="${meineReservierungenInListe != null and !#lists.isEmpty(meineReservierungenInListe)}">
+      <li th:each="eintrag : ${meineReservierungenInListe}">
+        <span th:text="${eintrag.wunschTitel}">Wunsch</span>
+        -
+        <span th:text="${#numbers.formatDecimal(eintrag.preis, 1, 2)}">0.00</span> €
+      </li>
+    </ul>
+
+    <p th:if="${meineReservierungenInListe == null or #lists.isEmpty(meineReservierungenInListe)}">
+      Du hast in dieser Liste noch nichts reserviert.
+    </p>
+
+    <div class="sum-row">
+      Gesamtbetrag:
+      <span th:text="${#numbers.formatDecimal(meinBetragInListe, 1, 2)}">0.00</span> €
+    </div>
   </div>
 
   <div class="back-row">
