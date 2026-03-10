@@ -38,6 +38,7 @@
       border:none;
       cursor:pointer;
       font-size:14px;
+      display:inline-block;
     }
 
     .button:hover{
@@ -58,7 +59,7 @@
       padding:35px;
       border-radius:14px;
       box-shadow:0 6px 18px rgba(0,0,0,0.15);
-      max-width:950px;
+      max-width:1000px;
     }
 
     .list-title{
@@ -79,7 +80,10 @@
       font-weight:bold;
     }
 
-    .share-box{
+    .share-box,
+    .members-box,
+    .progress-box,
+    .filter-box{
       background:#f8fbff;
       border:1px solid #dbe7ff;
       border-radius:12px;
@@ -88,10 +92,13 @@
       margin-bottom:25px;
     }
 
-    .share-title{
+    .share-title,
+    .members-title,
+    .progress-title,
+    .filter-title{
       font-size:16px;
       font-weight:bold;
-      margin-bottom:8px;
+      margin-bottom:10px;
       color:#4f7cff;
     }
 
@@ -110,22 +117,6 @@
       border-radius:8px;
       font-size:14px;
       background:white;
-    }
-
-    .members-box{
-      background:#f8fbff;
-      border:1px solid #dbe7ff;
-      border-radius:12px;
-      padding:16px;
-      margin-top:20px;
-      margin-bottom:25px;
-    }
-
-    .members-title{
-      font-size:16px;
-      font-weight:bold;
-      margin-bottom:10px;
-      color:#4f7cff;
     }
 
     .members-list{
@@ -298,6 +289,57 @@
       color:#333;
     }
 
+    .progress-bar{
+      width:100%;
+      height:18px;
+      background:#dbe7ff;
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:8px;
+      margin-bottom:10px;
+    }
+
+    .progress-fill{
+      height:100%;
+      background:#4f7cff;
+    }
+
+    .dropdown{
+      position:relative;
+      display:inline-block;
+    }
+
+    .dropdown-menu{
+      display:none;
+      position:absolute;
+      top:48px;
+      left:0;
+      background:white;
+      border:1px solid #dbe7ff;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+      min-width:260px;
+      z-index:10;
+      padding:8px;
+    }
+
+    .dropdown-menu a{
+      display:block;
+      text-decoration:none;
+      color:#1d2a35;
+      padding:10px 12px;
+      border-radius:8px;
+      font-size:14px;
+    }
+
+    .dropdown-menu a:hover{
+      background:#eef4ff;
+    }
+
+    .dropdown.open .dropdown-menu{
+      display:block;
+    }
+
     form{
       margin:0;
     }
@@ -311,6 +353,8 @@
   <div class="title">Wünsch dir was!</div>
 
   <div class="header-actions">
+
+    <a href="/dashboard" class="button">Dashboard</a>
 
     <a href="/wunschlisten" class="button">
       Meine Listen
@@ -340,6 +384,25 @@
     Eventdatum:
     <span th:text="${liste.eventdate}"></span>
   </p>
+
+  <div th:if="${!istBesitzer}" class="progress-box">
+    <div class="progress-title">Fortschritt dieser Wunschliste</div>
+
+    <div>
+      <strong th:text="${fortschrittProzent + ' %'}">0 %</strong>
+      der Wünsche sind bereits nicht mehr frei.
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill"
+           th:style="'width:' + ${fortschrittProzent} + '%'"></div>
+    </div>
+
+    <div class="meta">
+      <span th:text="${reserviertAnzahl}">0</span> von
+      <span th:text="${gesamtAnzahl}">0</span> Wünschen sind reserviert.
+    </div>
+  </div>
 
   <div th:if="${istBesitzer}" class="share-box">
     <div class="share-title">Wunschliste teilen</div>
@@ -376,14 +439,55 @@
     </form>
   </div>
 
-  <div th:if="${!istBesitzer}" class="owner-actions">
-    <a href="#meine-reservierungen" class="button">
-      Meine Reservierungen
-    </a>
+  <div th:if="${!istBesitzer}" class="filter-box">
+    <div class="filter-title">Ansicht der Wünsche</div>
+
+    <div class="dropdown" id="filterDropdown">
+      <button type="button" class="button" onclick="toggleDropdown()">
+        Filter und Sortierung
+      </button>
+
+      <div class="dropdown-menu">
+        <a th:href="@{'/wunschlisten/' + ${liste.id} + '?nurFrei=false&sortierung=prioritaet'}">
+          Alle Wünsche + nach Priorität
+        </a>
+
+        <a th:href="@{'/wunschlisten/' + ${liste.id} + '?nurFrei=true&sortierung=prioritaet'}">
+          Nur freie Wünsche
+        </a>
+
+        <a th:href="@{'/wunschlisten/' + ${liste.id} + '?nurFrei=' + ${nurFrei} + '&sortierung=prioritaet'}">
+          Nach Priorität sortieren
+        </a>
+
+        <a th:href="@{'/wunschlisten/' + ${liste.id} + '?nurFrei=' + ${nurFrei} + '&sortierung=preis_auf'}">
+          Preis aufsteigend
+        </a>
+
+        <a th:href="@{'/wunschlisten/' + ${liste.id} + '?nurFrei=' + ${nurFrei} + '&sortierung=preis_ab'}">
+          Preis absteigend
+        </a>
+
+        <a th:href="@{'/wunschlisten/' + ${liste.id} + '?nurFrei=' + ${nurFrei} + '&sortierung=titel'}">
+          Alphabetisch
+        </a>
+      </div>
+    </div>
+
+    <div class="meta" style="margin-top:12px;">
+      Aktuell:
+      <span th:if="${nurFrei}">nur freie Wünsche</span>
+      <span th:if="${!nurFrei}">alle Wünsche</span>
+      ,
+      <span th:if="${sortierung == 'prioritaet'}">sortiert nach Priorität</span>
+      <span th:if="${sortierung == 'preis_auf'}">sortiert nach Preis aufsteigend</span>
+      <span th:if="${sortierung == 'preis_ab'}">sortiert nach Preis absteigend</span>
+      <span th:if="${sortierung == 'titel'}">alphabetisch sortiert</span>
+    </div>
   </div>
 
   <div class="sort-hint">
-    Sortierung: zuerst hohe Priorität, dann mittlere, dann niedrige, innerhalb derselben Priorität alphabetisch.
+    Die Wunschliste kann nach Priorität, Preis oder alphabetisch angezeigt werden.
   </div>
 
   <div th:each="wunsch : ${wuensche}" class="wunsch-card">
@@ -403,8 +507,15 @@
     </div>
 
     <div class="wunsch-image"
-         th:if="${wunsch.bildUrl != null and !#strings.isEmpty(wunsch.bildUrl)}">
-      <img th:src="${wunsch.bildUrl}" alt="Produktbild">
+         th:if="${(wunsch.bildDateiname != null and !#strings.isEmpty(wunsch.bildDateiname)) or (wunsch.bildUrl != null and !#strings.isEmpty(wunsch.bildUrl))}">
+
+      <img th:if="${wunsch.bildDateiname != null and !#strings.isEmpty(wunsch.bildDateiname)}"
+           th:src="@{'/uploads/' + ${wunsch.bildDateiname}}"
+           alt="Produktbild">
+
+      <img th:if="${(wunsch.bildDateiname == null or #strings.isEmpty(wunsch.bildDateiname)) and wunsch.bildUrl != null and !#strings.isEmpty(wunsch.bildUrl)}"
+           th:src="${wunsch.bildUrl}"
+           alt="Produktbild">
     </div>
 
     <div class="meta">
@@ -515,6 +626,17 @@
     input.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(input.value);
   }
+
+  function toggleDropdown() {
+    document.getElementById("filterDropdown").classList.toggle("open");
+  }
+
+  document.addEventListener("click", function(event) {
+    const dropdown = document.getElementById("filterDropdown");
+    if (dropdown && !dropdown.contains(event.target)) {
+      dropdown.classList.remove("open");
+    }
+  });
 </script>
 
 </body>
