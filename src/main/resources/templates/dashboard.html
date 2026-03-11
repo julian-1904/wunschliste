@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Wünsch dir was! – Dashboard</title>
+
+  <style>
+    body{
+      font-family:Arial;
+      background:#eef4ff;
+      padding:40px;
+    }
+
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:30px;
+    }
+
+    .title{
+      font-size:30px;
+      color:#4f7cff;
+      font-weight:bold;
+    }
+
+    .header-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .button{
+      background:#4f7cff;
+      color:white;
+      padding:10px 18px;
+      border-radius:8px;
+      text-decoration:none;
+      border:none;
+      cursor:pointer;
+      font-size:14px;
+      display:inline-block;
+    }
+
+    .button:hover{
+      background:#3c66db;
+    }
+
+    .logout-button{
+      background:#6c757d;
+      color:white;
+      border:none;
+      padding:10px 18px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:14px;
+    }
+
+    .container{
+      max-width:1100px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:16px;
+      margin-bottom:26px;
+    }
+
+    .stat-card,
+    .box{
+      background:white;
+      padding:22px;
+      border-radius:14px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .stat-title{
+      color:#666;
+      font-size:14px;
+      margin-bottom:10px;
+    }
+
+    .stat-value{
+      font-size:30px;
+      font-weight:bold;
+      color:#4f7cff;
+    }
+
+    .box-title{
+      font-size:20px;
+      font-weight:bold;
+      color:#4f7cff;
+      margin-bottom:14px;
+    }
+
+    .list{
+      margin:0;
+      padding-left:20px;
+      color:#555;
+    }
+
+    .list li{
+      margin-bottom:10px;
+    }
+
+    .row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">Wünsch dir was!</div>
+
+  <div class="header-actions">
+    <a href="/wunschlisten" class="button">Meine Listen</a>
+    <a href="/wunschlisten/neu" class="button">Neue Wunschliste</a>
+
+    <form th:action="@{/logout}" method="post">
+      <button type="submit" class="logout-button">Logout</button>
+    </form>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="grid">
+    <div class="stat-card">
+      <div class="stat-title">Listen gesamt</div>
+      <div class="stat-value" th:text="${anzahlListen}">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Eigene Listen</div>
+      <div class="stat-value" th:text="${anzahlEigeneListen}">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Mitglieds-Listen</div>
+      <div class="stat-value" th:text="${anzahlMitgliedsListen}">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Meine Reservierungen</div>
+      <div class="stat-value" th:text="${meineReservierungenAnzahl}">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Wünsche gesamt</div>
+      <div class="stat-value" th:text="${anzahlWuenscheGesamt}">0</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Mein Gesamtbetrag</div>
+      <div class="stat-value" th:text="${#numbers.formatDecimal(meinGesamtbetrag, 1, 2) + ' €'}">0.00 €</div>
+    </div>
+  </div>
+
+  <div class="box" style="margin-bottom:20px;">
+    <div class="box-title">Schnellzugriff</div>
+    <div class="row">
+      <a href="/wunschlisten" class="button">Zu meinen Listen</a>
+      <a href="/wunschlisten/neu" class="button">Neue Wunschliste erstellen</a>
+    </div>
+  </div>
+
+  <div class="box" style="margin-bottom:20px;">
+    <div class="box-title">Meine reservierten Wünsche</div>
+
+    <ul class="list" th:if="${meineReservierungen != null and !#lists.isEmpty(meineReservierungen)}">
+      <li th:each="eintrag : ${meineReservierungen}">
+        <strong th:text="${eintrag.listenTitel}">Liste</strong>:
+        <span th:text="${eintrag.wunschTitel}">Wunsch</span>
+        -
+        <span th:text="${#numbers.formatDecimal(eintrag.preis, 1, 2)}">0.00</span> €
+      </li>
+    </ul>
+
+    <p th:if="${meineReservierungen == null or #lists.isEmpty(meineReservierungen)}">
+      Du hast bisher noch nichts reserviert.
+    </p>
+  </div>
+
+  <div class="box">
+    <div class="box-title">Meine Listen</div>
+
+    <ul class="list" th:if="${listen != null and !#lists.isEmpty(listen)}">
+      <li th:each="liste : ${listen}">
+        <span th:text="${liste.titel}">Liste</span>
+        <a th:href="@{'/wunschlisten/' + ${liste.id}}" class="button" style="margin-left:10px;">Öffnen</a>
+      </li>
+    </ul>
+
+    <p th:if="${listen == null or #lists.isEmpty(listen)}">
+      Du hast noch keine Wunschlisten.
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>
